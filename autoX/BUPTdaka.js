@@ -37,8 +37,8 @@ function wechatentrance() {
     var home = text('北京邮电大学').className('android.view.View').depth(20).findOne(5000);
     count++;
     if (count > 2 && count <= 4) {
-       scrollDown();
-       sleep(1000);
+      scrollDown();
+      sleep(1000);
     } else if (count > 4) {
       console.log("没有找到北邮公众号");
       return false;
@@ -54,17 +54,17 @@ function wechatentrance() {
   //2nd
   count = 0;
   do {
-    var home = textContains('疫情防控通').className('android.view.View').depth(20).findOne(5000);
+    var corona = textContains('疫情防控通').className('android.view.View').depth(20).findOne(5000);
     count++;
     if (count > 2 && count <= 4) {
-       scrollDown();
-       sleep(1000);
+      scrollDown();
+      sleep(1000);
     } else if (count > 4) {
       console.log("没有找到公众号的疫情防控通");
       return false;
     }
-  } while (home == null);
-  var result2 = home.parent().parent().parent().parent().click();
+  } while (corona == null);
+  var result2 = corona.parent().parent().parent().parent().click();
   console.log("是否打开公众号的疫情防控通:", result2);
   sleep(2000);
 
@@ -79,36 +79,34 @@ function wechatentrance() {
   // sleep(4000);
 
 
-  //3rd
+  //3rd直接从每日填报进入
   count = 0;
   do {
-    var home = text('北京邮电大学').className('android.view.View').depth(20).findOne(5000);
+    var daily = text('每日填报').className('android.widget.TextView').depth(12).findOne(5000);
     count++;
-    if (count > 2 && count <= 4) {
-       scrollDown();
-       sleep(1000);
-    } else if (count > 4) {
-      console.log("没有找到北邮公众号");
+    sleep(1000);
+    if (count > 4) {
+      console.log("没有找到每日填报");
       return false;
     }
-  } while (home == null);
-  var result1 = home.parent().parent().parent().parent().parent().click();
-  console.log("是否打开北邮公众号:", result1);
-  sleep(2000);
-  //3rd
-  var daily = id('com.tencent.mm:id/gs1').row(-1).depth(10).clickable(true).indexInParent(0).findOne(10000);
-  if (daily == null) {
-    console.log("没有找到每日填报");
-    return false;
-  }
-  var result3 = daily.click();
-  console.log("是否找到每日填报:" + result3);
-  sleep(5000);
-
-  scrollDown();
-
-  sleep(2000);
-  return className('android.view.View').row(9).depth(21).clickable(true).indexInParent(9).exists();
+  } while (daily == null);
+  var result3 = daily.parent().parent().click();
+  console.log("是否打开每日填报:", result3);
+  sleep(3000);
+  // //3rd
+  // var daily = id('com.tencent.mm:id/gs1').row(-1).depth(10).clickable(true).indexInParent(0).findOne(10000);
+  // if (daily == null) {
+  //   console.log("没有找到每日填报");
+  //   return false;
+  // }
+  // var result3 = daily.click();
+  // console.log("是否找到每日填报:" + result3);
+  // sleep(5000);
+  do {
+    var dailyresult = text('每日填报').findOne(3000);
+    scrollDown();
+  } while (!dailyresult);
+  return dailyresult;
 }
 
 
