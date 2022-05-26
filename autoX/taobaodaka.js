@@ -1,20 +1,45 @@
 //清除后台进程
-function clearall() {
+function clearall(Appname) {
+  var count = 0;
+  var result = false;
   do {
     recents();
     sleep(3500);
     var b = className("android.widget.RelativeLayout").id("clearbox").findOne(5000);
     if (b == null) {
       back();
+      launchApp(Appname);
       sleep(1000);
       back();
     }
   } while (b == null);
   b = b.bounds();
-  var result = click(b.centerX(), b.centerY());
-  sleep(3500);
+  do {
+    result = click(b.centerX(), b.centerY());
+    sleep(1000);
+    count++;
+    if (count > 2) {
+      // console.log("break from here!!!");
+      return false;
+    }
+  } while (!result && (!className("android.widget.RelativeLayout").id("clearbox").exists()));
   return result;
 }//返回是否成功按下清除按钮
+
+//used to send intent to the tasker to notify users!!!!
+//It's marvelous!!!
+function sendintent(actions, detail) {
+  // send-broadcast.js
+
+  app.sendBroadcast({
+    action: actions,
+    extras: {
+      from: 'Autojs',
+      version: '3.1.0 Beta',
+      info: detail,
+    },
+  });
+}
 
 
 // open用来打开app
@@ -26,6 +51,14 @@ function open(Appname) {
   } while (!flag);
   return flag;
 }//返回是否成功打开app
+
+
+//上为工具类
+
+
+
+
+
 
 // window为打卡提示标志,说明正在打卡
 function window() {
@@ -74,21 +107,17 @@ function check() {
 }
 
 
-function isDeviceLocked() {
-  importClass(android.app.KeyguardManager)
-  importClass(android.content.Context)
 
-  var km = context.getSystemService(Context.KEYGUARD_SERVICE);
-  console.log("is keyguard locked:" + km.isKeyguardLocked());
-  console.log("is keyguard secure:" + km.isKeyguardSecure());
-  return km.isKeyguardLocked() && km.isKeyguardSecure();;
-}
+
 
 
 
 
 //用来进行账号切换
 function changeaccount(index) {
+
+
+  //打开我的淘宝
   var button = desc("我的淘宝").depth(10).indexInParent(4).findOne(10000);
   if (button == null)
     return false;
@@ -96,6 +125,7 @@ function changeaccount(index) {
   sleep(3000);
 
 
+  //点击设置按钮
   var setting = desc("设置").depth(13).indexInParent(11);
   if (setting == null)
     return false;
@@ -107,14 +137,26 @@ function changeaccount(index) {
     console.log("没有进入设置界面");
     return false;
   }
-  sleep(2000);
-  uiobject.scrollDown();
-  sleep(2000);
-  var change = text("切换账号").depth(9).indexInParent(0).findOne(10000);
-  if (change == null) {
-    console.log("没有找到切换按钮");
-    return false;
-  }
+  sleep(3000);
+
+
+
+  //找到切换账号按钮
+  var count = 0;
+  do {
+    sleep(2000);
+    scrollDown();
+    sleep(2000);
+    var change = text("切换账号").depth(9).indexInParent(0).findOne(10000);
+    count++;
+    if (count > 2 && count <= 4) {
+      scrollDown();
+      sleep(2000);
+    } else if (count > 4) {
+      console.log("没有找到切换账号按钮");
+      return false;
+    }
+  } while (change == null);
   change.click();
   sleep(2000);
   if (currentActivity() == "com.taobao.login4android.membercenter.account.MultiAccountActivity")
@@ -125,6 +167,10 @@ function changeaccount(index) {
   }
   sleep(2000);
 
+
+
+
+  //
   var changeto = text("换个账号登录").className("android.widget.Button").depth(11).indexInParent(1).findOne(10000);
   if (changeto == null)
     return false;
@@ -137,12 +183,20 @@ function changeaccount(index) {
     return false;
 }
 
-function init() {
+
+
+
+
+
+
+function main1() {
   toast("开始淘宝打卡!!!");
-  console.log("is device locked:" + isDeviceLocked());
   auto.waitFor();
   sleep(3000);
-  var result = clearall();
+  do {
+    result = clearall("淘宝");
+  } while (!result);
+
   // console.log('是否成功清除后台:', result);
   var flag = open("淘宝");
   // console.log('是否正确打开淘宝:', flag);
@@ -153,8 +207,11 @@ function init() {
 
 
 
+
+
+
 //code starts from here
-init();
+main1();
 window();
 var numberofaccount = 3;
 var i = 1;
@@ -179,17 +236,25 @@ sleep(5000);
 
 
 
-clearall();
+do {
+  result = clearall("淘宝");
+} while (!result);
 floaty.closeAll();
 for (var m = 0; m < numberofaccount; m++) {
   if (!flag[m]) {
+    result = result & flag[m];
     toast("账户%d打卡失败!!!!", m + 1);
     console.log("打卡失败");
     engines.stopAll();
   }
 }
-toast("签到完成!!!!");
-console.log("打卡成功!!");
-device.vibrate(3000);
-toast("淘宝财神没钱啦!!!");
-//end of the program
+if (result) {
+  sendintent('autojs.intent.action.dakasucceed', 'succeed✪ ω ✪!!!')
+  toast("签到完成!!!!");
+  console.log("打卡成功!!");
+  device.vibrate(3000);
+  toast("淘宝财神没钱啦!!!");
+  //end of the program
+} else {
+  sendintent('autojs.intent.action.dakafail', 'fail╯︿╰!!!')
+}

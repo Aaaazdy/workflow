@@ -1,20 +1,47 @@
 //清除后台进程
-function clearall() {
+function clearall(Appname) {
+  var count = 0;
+  var result = false;
   do {
     recents();
     sleep(3500);
     var b = className("android.widget.RelativeLayout").id("clearbox").findOne(5000);
     if (b == null) {
       back();
+      launchApp(Appname);
       sleep(1000);
       back();
     }
   } while (b == null);
   b = b.bounds();
-  var result = click(b.centerX(), b.centerY());
-  sleep(3500);
+  do {
+    result = click(b.centerX(), b.centerY());
+    sleep(1000);
+    count++;
+    if (count > 2) {
+      // console.log("break from here!!!");
+      return false;
+    }
+  } while (!result && (!className("android.widget.RelativeLayout").id("clearbox").exists()));
   return result;
 }//返回是否成功按下清除按钮
+
+
+
+//used to send intent to the tasker to notify users!!!!
+//It's marvelous!!!
+function sendintent(actions, detail) {
+  // send-broadcast.js
+
+  app.sendBroadcast({
+    action: actions,
+    extras: {
+      from: 'Autojs',
+      version: '3.1.0 Beta',
+      info: detail,
+    },
+  });
+}
 
 
 // open用来打开app
@@ -26,6 +53,11 @@ function open(Appname) {
   } while (!flag);
   return flag;
 }//返回是否成功打开app
+
+
+
+
+
 
 //进入微信,开始进入公众号打卡
 function wechatentrance() {
@@ -383,21 +415,6 @@ function verify() {
 }
 
 
-//used to send intent to the tasker to notify users!!!!
-//It's marvelous!!!
-function sendintent(actions, detail) {
-  // send-broadcast.js
-
-  app.sendBroadcast({
-    action: actions,
-    extras: {
-      from: 'Autojs',
-      version: '3.1.0 Beta',
-      info: detail,
-    },
-  });
-}
-
 
 
 
@@ -406,7 +423,7 @@ function sendintent(actions, detail) {
 // console.setPosition(255, 525);
 function main1() {
   do {
-    clearall();
+    clearall("微信");
     open("微信");
   } while (currentActivity() != 'com.tencent.mm.ui.LauncherUI');
 
@@ -438,7 +455,7 @@ main1();
 main2();
 once = main3();
 once = once & verify();
-clearall();
+clearall("微信");
 if (entrance && once) {
   sendintent('autojs.intent.action.dakasucceed', 'succeed✪ ω ✪!!!')
 } else {
