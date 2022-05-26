@@ -77,29 +77,66 @@ function window() {
 
 //check为进入淘宝签到页面,进行签到,后退出
 function check() {
-  var button1 = desc("我的淘宝").depth(10).indexInParent(4).findOne(10000);
-  if (button1 == null)
-    return false;
-  button1.click();
-  sleep(7000);
-  var button2 = text("红包签到").depth(14).indexInParent(14).findOne(10000);
-  sleep(1000);
-  if (button2 == null) {
-    console.log("没有找到按钮");
-    return false;
-  }
-  var button3 = button2.parent().child(12);
-  button3.click();
-  // click(82, 155);//点击签到
-  sleep(5000);
+
+  //点开我的淘宝
+  var count = 0;
+  do {
+    var button1 = desc("我的淘宝").depth(10).indexInParent(4).findOne(10000);
+    if (button1 == null)
+      return false;
+    count++;
+    if (count > 2 && count <= 4) {
+      sleep(1000);
+    } else if (count > 4) {
+      console.log("没有找到我的淘宝按钮");
+      return false;
+    }
+  } while (button1 == null)
+  var result1 = button1.click();
+  console.log("是否打开我的淘宝:", result1);
+  sleep(3400);
+
+  //点击红包签到
+  count = 0;
+  do {
+    var button2 = text("红包签到").depth(14).indexInParent(14).findOne(10000);
+    if (button2 == null)
+      return false;
+    count++;
+    if (count > 2 && count <= 4) {
+      sleep(1000);
+    } else if (count > 4) {
+      console.log("没有找到红包签到按钮");
+      return false;
+    }
+  } while (button2 == null)
+  var result2 = button2.parent().child(12).click();
+  console.log("是否打开红包签到:", result2);
+  sleep(3400);
+
+
 
   //进入页面后返回
   do {
-    var checkbacktext = text("红包签到").depth(10).indexInParent(1).findOne(10000);
-    var checkback = checkbacktext.parent().child(0);
-    checkback.click();
+
+
+    do {
+      var checkbacktext = text("红包签到").depth(10).indexInParent(1).findOne(10000);
+      if (checkbacktext == null)
+        return false;
+      count++;
+      if (count > 2 && count <= 4) {
+        sleep(1000);
+      } else if (count > 4) {
+        console.log("没有找到红包签到返回按钮");
+        return false;
+      }
+    } while (button2 == null)
+    var checkback = checkbacktext.parent().child(0).click();
     sleep(2000);
-  } while (currentActivity() == "com.taobao.browser.BrowserActivity");
+
+
+  } while (!checkback || currentActivity() == "com.taobao.browser.BrowserActivity");
   if (currentActivity() == "com.taobao.tao.TBMainActivity")
     return true;
   else
@@ -203,58 +240,85 @@ function main1() {
 }
 
 
+function main2() {
+
+  window();
+  var numberofaccount = 3;
+  var i = 1;
+  var flag = [];
+  flag[0] = true;
+  for (; i < numberofaccount; i++) {
+    flag[i] = check();//进行打卡
+    console.log('是否成功领到红包:', flag[i]);
+    sleep(5000);
+    var main2count = 0;
+    do {
+      var flag2 = changeaccount(i);//进行账户切换
+      sleep(3000);
+      main2count++;
+      if (main2count > 2 && main2count < 4) {
+        scrollDown();
+        sleep(2000);
+      } else if (main2count > 4 && main2count < 6) {
+        main1();
+        var flag2 = changeaccount(i);//进行账户切换
+      } else if (main2count >= 6) {
+        return false;
+      }
+    } while (flag2 == null)
+    console.log('是否成功切换账户:', flag2);
+    flag[i] = flag[i] & flag2;
+    sleep(2000);
+  }
+  flag[i + 1] = check();//进行打卡
+  console.log('是否成功领到红包:', flag[i + 1]);
+  sleep(5000);
+
+
+  var result = true;
+
+  for (var m = 1; m <= numberofaccount; m++) {
+    result = result & flag[m];
+    if (!flag[m]) {
+      toast("账户%d打卡失败!!!!", m);
+      console.log("账户%d打卡失败!!!!", m);
+      return false;
+    }
+    return result;
+  }
+}
 
 
 
+
+
+
+
+function main3(result) {
+  var clearresult;
+  do {
+    clearresult = clearall("淘宝");
+  } while (!clearresult);
+  floaty.closeAll();
+  engines.stopAll();
+  result = result & clearresult;
+  if (result) {
+    sendintent('autojs.intent.action.dakasucceed', 'succeed✪ ω ✪!!!')
+    toast("签到完成!!!!");
+    console.log("打卡成功!!");
+    device.vibrate(3000);
+    toast("淘宝财神没钱啦!!!");
+    //end of the program
+  } else {
+    sendintent('autojs.intent.action.dakafail', 'fail╯︿╰!!!')
+  }
+}
 
 
 
 
 //code starts from here
+
+
 main1();
-window();
-var numberofaccount = 3;
-var i = 1;
-// console.show();
-// console.setPosition(255, 525);
-
-var flag = [];
-flag[0] = true;
-for (; i < numberofaccount; i++) {
-  flag[i] = check();//进行打卡
-  console.log('是否成功领到红包:', flag[i]);
-  sleep(5000);
-  var flag2 = changeaccount(i);//进行账户切换
-  console.log('是否成功切换账户:', flag2);
-  flag[i] = flag[i] & flag2;
-  sleep(2000);
-}
-flag[i + 1] = check();//进行打卡
-console.log('是否成功领到红包:', flag[i + 1]);
-sleep(5000);
-
-
-
-
-do {
-  result = clearall("淘宝");
-} while (!result);
-floaty.closeAll();
-for (var m = 0; m < numberofaccount; m++) {
-  if (!flag[m]) {
-    result = result & flag[m];
-    toast("账户%d打卡失败!!!!", m + 1);
-    console.log("打卡失败");
-    engines.stopAll();
-  }
-}
-if (result) {
-  sendintent('autojs.intent.action.dakasucceed', 'succeed✪ ω ✪!!!')
-  toast("签到完成!!!!");
-  console.log("打卡成功!!");
-  device.vibrate(3000);
-  toast("淘宝财神没钱啦!!!");
-  //end of the program
-} else {
-  sendintent('autojs.intent.action.dakafail', 'fail╯︿╰!!!')
-}
+main3(main2());
