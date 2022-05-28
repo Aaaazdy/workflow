@@ -147,14 +147,14 @@ function wechatentrance() {
 function dailyonce() {
   scrollDown();
   sleep(1000);
-  var dailyonce = className('android.view.View').row(9).depth(21).clickable(true).indexInParent(9).findOne(10000);
+  var dailyonce = text("每日填报").depth(22).findOne(10000);
   if (dailyonce == null) {
     console.log("没有找到每日填报打卡进入口");
     return false;
   }
   var result3;
   do {
-    result3 = dailyonce.click();
+    result3 = dailyonce.parent().click();
     sleep(2000);
   } while (!result3);
   console.log("是否找到每日填报打卡进入口:" + result3);
@@ -319,11 +319,11 @@ function daily3times() {
 function verify() {
   scrollDown();
   sleep(1000);
-  var verify = className('android.view.View').row(9).depth(21).clickable(true).indexInParent(9).findOne(10000);
+  var verify = text("每日填报").depth(22).findOne(10000);
   if (verify == null) {
     return false;
   }
-  var result1 = verify.click();
+  var result1 = verify.parent().click();
   sleep(4000);
 
   scrollDown();
