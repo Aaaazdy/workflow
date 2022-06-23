@@ -41,7 +41,6 @@ function sendintent(actions, detail) {
   });
 }
 
-
 // open用来打开app
 function open(Appname) {
   var flag = false;
@@ -52,8 +51,8 @@ function open(Appname) {
   return flag;
 }//返回是否成功打开app
 
-
 //上为工具类
+//---------------------------------------------------------------
 
 
 
@@ -81,7 +80,7 @@ function check() {
   //点开我的淘宝
   var count = 0;
   do {
-    var button1 = desc("我的淘宝").depth(10).indexInParent(4).findOne(10000);
+    var button1 = descContains("我的淘宝").indexInParent(4).findOne(10000);
     if (button1 == null)
       return false;
     count++;
@@ -99,9 +98,7 @@ function check() {
   //点击红包签到
   count = 0;
   do {
-    var button2 = text("红包签到").depth(14).indexInParent(14).findOne(10000);
-    if (button2 == null)
-      return false;
+    var button2 = text("红包签到").findOne(10000);
     count++;
     if (count > 2 && count <= 4) {
       sleep(1000);
@@ -115,26 +112,24 @@ function check() {
   sleep(3400);
 
 
-
   //进入页面后返回
   do {
-
-
+    count = 0;
     do {
-      var checkbacktext = text("红包签到").depth(10).indexInParent(1).findOne(10000);
-      if (checkbacktext == null)
-        return false;
+      var checkbacktext = text("红包签到").findOne(10000);
+      if (checkbacktext == null) {
+        console.log("第",count,"次寻找,仍没有找到红包签到返回按钮");
+      }
       count++;
       if (count > 2 && count <= 4) {
         sleep(1000);
       } else if (count > 4) {
-        console.log("没有找到红包签到返回按钮");
+        console.log("尝试4次后仍没有找到红包签到返回按钮");
         return false;
       }
-    } while (button2 == null)
+    } while (checkbacktext == null)
     var checkback = checkbacktext.parent().child(0).click();
     sleep(2000);
-
 
   } while (!checkback || currentActivity() == "com.taobao.browser.BrowserActivity");
   if (currentActivity() == "com.taobao.tao.TBMainActivity")
@@ -144,18 +139,12 @@ function check() {
 }
 
 
-
-
-
-
-
-
 //用来进行账号切换
 function changeaccount(index) {
 
 
   //打开我的淘宝
-  var button = desc("我的淘宝").depth(10).indexInParent(4).findOne(10000);
+  var button = descContains("我的淘宝").indexInParent(4).findOne(10000);
   if (button == null)
     return false;
   button.click();
@@ -163,7 +152,7 @@ function changeaccount(index) {
 
 
   //点击设置按钮
-  var setting = desc("设置").depth(13).indexInParent(11);
+  var setting = descContains("设置").clickable().findOne(10000);
   if (setting == null)
     return false;
   setting.click();
@@ -177,14 +166,13 @@ function changeaccount(index) {
   sleep(3000);
 
 
-
   //找到切换账号按钮
   var count = 0;
   do {
     sleep(2000);
     scrollDown();
     sleep(2000);
-    var change = text("切换账号").depth(9).indexInParent(0).findOne(10000);
+    var change = text("切换账号").clickable().findOne(10000);
     count++;
     if (count > 2 && count <= 4) {
       scrollDown();
@@ -204,11 +192,8 @@ function changeaccount(index) {
   }
   sleep(2000);
 
-
-
-
   //
-  var changeto = text("换个账号登录").className("android.widget.Button").depth(11).indexInParent(1).findOne(10000);
+  var changeto = text("换个账号登录").clickable().findOne(10000);
   if (changeto == null)
     return false;
   var account = changeto.parent().child(0).child(index);
@@ -219,11 +204,6 @@ function changeaccount(index) {
   else
     return false;
 }
-
-
-
-
-
 
 
 function main1() {
@@ -289,11 +269,6 @@ function main2() {
 }
 
 
-
-
-
-
-
 function main3(result) {
   var clearresult;
   do {
@@ -313,9 +288,6 @@ function main3(result) {
     sendintent('autojs.intent.action.dakafail', 'fail╯︿╰!!!')
   }
 }
-
-
-
 
 //code starts from here
 
