@@ -1,3 +1,6 @@
+//---------------------------------------------------------------------------------
+// \begin{PREDEFINED FUNCTION}
+
 //清除后台进程
 function clearall(Appname) {
   var count = 0;
@@ -29,7 +32,6 @@ function clearall(Appname) {
 
 
 //used to send intent to the tasker to notify users!!!!
-//It's marvelous!!!
 function sendintent(actions, detail) {
   // send-broadcast.js
 
@@ -49,24 +51,35 @@ function open(Appname) {
   var flag = false;
   do {
     flag = launchApp(Appname);
-    sleep(3000) //等待应用打开
+    sleep(3000); //等待应用打开
   } while (!flag);
   return flag;
 }//返回是否成功打开app
 
 
+// \end{PREDEFINED FUNCTION}
+//---------------------------------------------------------------------------------
 
 
 
 
-//进入微信,开始进入公众号打卡
+
+
+
+
+//---------------------------------------------------------------------------------
+// \begin{SPECIFIC FUNCTION}
+
+//打开微信后进入打卡界面
 function wechatentrance() {
   // 1st
-
-  //format UIcontainer open code
+  // 打开北邮公众号
+  console.log('进入微信,寻找打卡界面');
   var count = 0;
+  var dailyresult;
+  var home = null;
   do {
-    var home = text('北京邮电大学').className('android.view.View').depth(20).findOne(5000);
+    home = text('北京邮电大学').className('android.view.View').findOne(5000);
     count++;
     if (count > 2 && count <= 4) {
       scrollDown();
@@ -79,14 +92,13 @@ function wechatentrance() {
   var result1 = home.parent().parent().parent().parent().parent().click();
   console.log("是否打开北邮公众号:", result1);
   sleep(2000);
-  //end format
-
-
 
   //2nd
+  //打开疫情防控通 
   count = 0;
+  var corona = null;
   do {
-    var corona = textContains('疫情防控通').className('android.view.View').depth(20).findOne(5000);
+    corona = textContains('疫情防控通').className('android.view.View').findOne(5000);
     count++;
     if (count > 2 && count <= 4) {
       scrollDown();
@@ -100,21 +112,12 @@ function wechatentrance() {
   console.log("是否打开公众号的疫情防控通:", result2);
   sleep(2000);
 
-  // //2nd
-  // var corona = id('com.tencent.mm:id/btf').row(0).depth(16).clickable(true).findOne(10000);
-  // if (corona == null) {
-  //   console.log("没有找到疫情防控通");
-  //   return false;
-  // }
-  // var result2 = corona.click();
-  // console.log("是否找到疫情防控通:" + result2);
-  // sleep(4000);
-
-
-  //3rd直接从每日填报进入
+  //3rd
+  //从每日填报进入打卡系统
   count = 0;
+  var daily = null;
   do {
-    var daily = text('每日填报').className('android.widget.TextView').depth(12).findOne(5000);
+    daily = text('每日填报').className('android.widget.TextView').findOne(5000);
     count++;
     sleep(1000);
     if (count > 4) {
@@ -125,61 +128,60 @@ function wechatentrance() {
   var result3 = daily.parent().parent().click();
   console.log("是否打开每日填报:", result3);
   sleep(3000);
-  // //3rd
-  // var daily = id('com.tencent.mm:id/gs1').row(-1).depth(10).clickable(true).indexInParent(0).findOne(10000);
-  // if (daily == null) {
-  //   console.log("没有找到每日填报");
-  //   return false;
-  // }
-  // var result3 = daily.click();
-  // console.log("是否找到每日填报:" + result3);
-  // sleep(5000);
   do {
-    var dailyresult = text('每日填报').findOne(3000);
+    dailyresult = text('每日填报').findOne(3000);
     scrollDown();
   } while (!dailyresult);
-  return dailyresult;
+  return !!dailyresult;
 }
 
 
-
-//填报每日打卡
-function dailyonce() {
+//打卡页面的主体程序
+function bulkOfDaka() {
+  var count = 0;
+  var i = 0;
   scrollDown();
   sleep(1000);
-  var dailyonce = text("每日填报").depth(22).findOne(10000);
-  if (dailyonce == null) {
-    console.log("没有找到每日填报打卡进入口");
-    return false;
-  }
-  var result3;
   do {
-    result3 = dailyonce.parent().click();
+    var dailyonce = text("每日填报").findOne(5000);
+    count++;
+    if (count > 2 && count <= 4) {
+      scrollDown();
+      sleep(1000);
+    } else if (count > 4) {
+      console.log("没有找到每日填报打卡进入口");
+      return false;
+    }
+  } while (dailyonce == null);
+  var result1;
+  do {
+    result1 = dailyonce.parent().click();
     sleep(2000);
-  } while (!result3);
-  console.log("是否找到每日填报打卡进入口:" + result3);
+    i++;
+  } while ((!result1) && (i < 4));
+  console.log("是否找到每日填报打卡进入口:" + result1);
   sleep(4000);
-
-
-
   scrollDown();
   //here starts the main part of the sheet
 
+  //1st
   //first choose ifatschool
-  var ifatschool = text('今日是否在校？').depth(22).indexInParent(0).className('android.widget.TextView').findOne(10000);
+  count = 0;
+  var backcount = 0;//回退后的计数器
+  var ifatschool = textContains('今日是否在校？').className('android.widget.TextView').findOne(10000);
   sleep(2000);
-  var count = 0;
-  var backcount = 0;
   while (!ifatschool) {
+    //未找到:{今日是否在校}
     scrollDown();
-    ifatschool = text('今日是否在校？').depth(22).indexInParent(0).className('android.widget.TextView').findOne(10000);
-    sleep(1000);
+    ifatschool = textContains('今日是否在校？').className('android.widget.TextView').findOne(10000);
+    sleep(2000);
     count++;
-    if (backcount == 2) {
-      console.log('无法打开网页!!');
+    if (backcount > 2) {
+      console.log('回退后无法再次打开网页!!');
+      backcount = 0;
       return false;
     }
-    if (count == 2) {
+    if (count > 2) {
       back();
       console.log('打卡网页打开失败,执行回退操作');
       backcount++;
@@ -187,7 +189,7 @@ function dailyonce() {
       scrollDown();
       sleep(1000);
       //repeat of the former code, to refresh the landing page
-      var dailyonce2 = className('android.view.View').row(9).depth(21).clickable(true).indexInParent(9).findOne(10000);
+      var dailyonce2 = text("每日填报").findOne(5000);
       if (dailyonce2 == null) {
         console.log("回退后,没有找到每日填报打卡进入口");
         return false;
@@ -202,13 +204,13 @@ function dailyonce() {
       count = 0;
     }
   }
-
-  var result4 = ifatschool.parent().child(4).click();
+  var result2 = ifatschool.parent().child(3).click();
   //important !!!
   //如果返校,需要自行修改!!!
   //在家child(4)
   //在学校child(3)
-  console.log("是否选择了是否在校:" + result4);
+  console.log("是否选择了是否在校:" + result2);
+
 
 
   scrollDown();
@@ -217,18 +219,25 @@ function dailyonce() {
 
 
 
+  //2nd
   //now set the location
-  var location = text('所在地点（请打开手机位置功能，并在手机权限设置中选择允许微信访问位置信息）').depth(23).indexInParent(0).className('android.widget.TextView').findOne(10000);
+  count = 0;
+  var location = null;
+  do {
+    location = textContains('所在地点（请打开手机位置功能，并在手机权限设置中选择允许微信访问位置信息）').className('android.widget.TextView').findOne(10000);
+    sleep(2000);
+    count++;
+    if (count > 2 && count <= 4) {
+      scrollDown();
+      sleep(1000);
+    } else if (count > 4) {
+      console.log("没有找到地理位置获取按钮");
+      return false;
+    }
+  } while (location == null);
+  var result3 = location.parent().click();
+  console.log("是否获取了位置信息:" + result3);
   sleep(2000);
-  while (!location) {
-    scrollDown();
-    location = text('所在地点（请打开手机位置功能，并在手机权限设置中选择允许微信访问位置信息）').depth(23).indexInParent(0).className('android.widget.TextView').findOne(10000);
-    sleep(1000);
-  }
-  var result5 = location.parent().click();
-  sleep(2000);
-  console.log("是否获取了位置信息:" + result5);
-  //此处问题:点击对象应该是depth(22)的控件,然而depth(23)也是可点击的,但是点击无效!!!
 
 
 
@@ -237,68 +246,86 @@ function dailyonce() {
   scrollDown();
 
 
-
+  //3rd
   //now choose if at the risky location
-  var risky = text('今日是否在中高风险地区？（中高风险地区信息可通过国务院客户端小程序实时查询）').depth(22).indexInParent(0).className('android.widget.TextView').findOne(10000);
+  count = 0;
+  var risky = null;
+  do {
+    risky = textContains('风险地区').className('android.widget.TextView').findOne(10000);
+    sleep(2000);
+    count++;
+    if (count > 2 && count <= 4) {
+      scrollDown();
+      sleep(1000);
+    } else if (count > 4) {
+      console.log("没有找到是否位于高风险选项");
+      return false;
+    }
+  } while (risky == null);
+  var result4 = risky.parent().child(4).click();
+  console.log("是否勾选了不在中高风险区:" + result4);
+
+
+  // scrollDown();
+  // scrollDown();
+  // scrollDown();
+  // scrollDown();
+  // scrollDown();
+  // scrollDown();
+  // sleep(1000);
+
+  //4th
+  //提交信息
+  count = 0;
+  var submit = null;
+  do {
+    submit = text('提交信息(Submit)').findOne(4000);
+    sleep(2000);
+    count++;
+    if (count > 2 && count <= 10) {
+      scrollDown();
+      scrollDown();
+      sleep(1000);
+    } else if (count > 10) {
+      console.log("没有找到提交信息(Submit)按钮");
+      return false;
+    }
+  } while (submit == null);
+  var result5 = submit.click();
+  console.log("是否点击了提交信息(Submit)按钮:" + result5);
   sleep(2000);
-  while (!risky) {
-    scrollDown();
-    risky = text('今日是否在中高风险地区？（中高风险地区信息可通过国务院客户端小程序实时查询）').depth(22).indexInParent(0).className('android.widget.TextView').findOne(10000);
+}
+
+
+//第一次进入打卡
+function dailyonce() {
+  console.log('进入打卡界面,开始打卡');
+
+  //进入打卡后的主体程序
+  bulkOfDaka();
+
+
+  // 第一次打卡后点击确认按钮
+  count = 0;
+  var confirms = null;
+  do {
+    confirms = textContains('确认').clickable(true).findOne(10000);
     sleep(1000);
-  }
-  var result6 = risky.parent().child(4).click();
-  while (!result6) {
-    scrollDown();
-    result6 = risky.parent().child(4).click();
-  }
-  sleep(2000);
-  console.log("是否勾选了不在中高风险区:" + result6);
+    count++;
 
-
-  scrollDown();
-  scrollDown();
-  scrollDown();
-  scrollDown();
-  scrollDown();
-  scrollDown();
-  sleep(1000);
-  scrollDown();
-  scrollDown();
-  scrollDown();
-  scrollDown();
-  scrollDown();
-  scrollDown();
-  sleep(1000);
-  scrollDown();
-  scrollDown();
-  scrollDown();
-  scrollDown();
-  scrollDown();
-  scrollDown();
-
-  var submit = text('提交信息(Submit)').depth(21).indexInParent(0).findOne(4000);
-  while (!submit) {
-    scrollDown();
-    submit = text('提交信息(Submit)').depth(21).indexInParent(0).findOne(4000);
-    sleep(1000);
-  }
-  submit.click();
-  sleep(2000);
-
-
-  var confirm = textContains('确认').clickable(true).findOne(10000);
-  sleep(1000);
-  while (!confirm) {
-    confirm = textContains('确认').clickable(true).findOne(10000);
-    sleep(1000);
-  }
-  var finalresult = confirm.click();
+    if (count > 2 && count <= 4) {
+      sleep(1000);
+    } else if (count > 4) {
+      console.log("没有找到确认按钮");
+      return false;
+    }
+  } while (confirms == null);
+  var finalresult = confirms.click();
   back();
   return finalresult;
 
 
 }
-
 
 
 //填报晨午晚检
@@ -314,98 +341,15 @@ function daily3times() {
 }
 
 
-
-
+//再次执行一遍打卡进程, 检查此前是否成功打卡
 function verify() {
   scrollDown();
-  sleep(1000);
-  var verify = text("每日填报").depth(22).findOne(10000);
-  if (verify == null) {
-    return false;
-  }
-  var result1 = verify.parent().click();
-  sleep(4000);
+  console.log("开始验证");
 
-  scrollDown();
-  //here is the copy of dailyonce
+  //再次执行进入打卡后的主体程序
+  bulkOfDaka();
 
-  //first choose ifatschool
-  var ifatschool = text('今日是否在校？').depth(22).indexInParent(0).className('android.widget.TextView').findOne(10000);
-  sleep(2000);
-  while (!ifatschool) {
-    scrollDown();
-    ifatschool = text('今日是否在校？').depth(22).indexInParent(0).className('android.widget.TextView').findOne(10000);
-    sleep(1000);
-  }
-  var result4 = ifatschool.parent().child(4).click();
-  console.log("是否选择了是否在校:" + result4);
-
-
-  scrollDown();
-  sleep(500);
-  scrollDown();
-
-
-
-  //now set the location
-  var location = text('所在地点（请打开手机位置功能，并在手机权限设置中选择允许微信访问位置信息）').depth(23).indexInParent(0).className('android.widget.TextView').findOne(10000);
-  sleep(2000);
-  while (!location) {
-    scrollDown();
-    location = text('所在地点（请打开手机位置功能，并在手机权限设置中选择允许微信访问位置信息）').depth(23).indexInParent(0).className('android.widget.TextView').findOne(10000);
-    sleep(1000);
-  }
-  var result5 = location.parent().click();
-  sleep(2000);
-  console.log("是否获取了位置信息:" + result5);
-
-  scrollDown();
-  sleep(500);
-  scrollDown();
-
-
-
-  //now choose if at the risky location
-  var risky = text('今日是否在中高风险地区？（中高风险地区信息可通过国务院客户端小程序实时查询）').depth(22).indexInParent(0).className('android.widget.TextView').findOne(10000);
-  sleep(2000);
-  while (!risky) {
-    scrollDown();
-    risky = text('今日是否在中高风险地区？（中高风险地区信息可通过国务院客户端小程序实时查询）').depth(22).indexInParent(0).className('android.widget.TextView').findOne(10000);
-    sleep(1000);
-  }
-  var result6 = risky.parent().child(4).click();
-  while (!result6) {
-    scrollDown();
-    result6 = risky.parent().child(4).click();
-  }
-  sleep(2000);
-  scrollDown();
-  scrollDown();
-  scrollDown();
-  scrollDown();
-  scrollDown();
-  scrollDown();
-  sleep(1000);
-  scrollDown();
-  scrollDown();
-  scrollDown();
-  scrollDown();
-  scrollDown();
-  scrollDown();
-  sleep(1000);
-  scrollDown();
-  scrollDown();
-  scrollDown();
-  scrollDown();
-  scrollDown();
-  scrollDown();
-  var submit = text('提交信息(Submit)').depth(21).indexInParent(0).findOne(4000);
-  while (!submit) {
-    scrollDown();
-    submit = text('提交信息(Submit)').depth(21).indexInParent(0).findOne(4000);
-    sleep(1000);
-  }
-  submit.click();
+  //检验是否打卡成果(出现你已提交过提示语)
   sleep(2000);
   if (textContains('请确认信息是否全部正确').exists()) {
     return false;
@@ -414,13 +358,20 @@ function verify() {
   } else { return false; }
 }
 
+// \end{SPECIFIC FUNCTION}
+//---------------------------------------------------------------------------------
 
 
 
 
-//main function code
+
+//---------------------------------------------------------------------------------
+// \begin{MAIN FUNCTION}
+
+//用于显示控制台
 // console.show();
 // console.setPosition(255, 525);
+
 function main1() {
   do {
     clearall("微信");
@@ -428,14 +379,18 @@ function main1() {
   } while (currentActivity() != 'com.tencent.mm.ui.LauncherUI');
 
 }
+//---------------------------------
 
 function main2() {
+  var entrance;
   entrance = wechatentrance();
   while (!entrance) {
     main1();
     entrance = wechatentrance();
   }
+  return entrance;
 }
+
 
 function main3() {
   var once2 = dailyonce();
@@ -443,21 +398,28 @@ function main3() {
     main1();
     main2();
     var once2 = dailyonce();
-
   }
   return once2;
 }
 
 
-var once;
-var entrance;
-main1();
-main2();
-once = main3();
-once = once & verify();
-clearall("微信");
-if (entrance && once) {
-  sendintent('autojs.intent.action.dakasucceed', 'succeed✪ ω ✪!!!')
-} else {
-  sendintent('autojs.intent.action.dakafail', 'fail╯︿╰!!!')
+function MAIN() {
+  var once;
+  var entrance;
+  main1();
+  entrance = main2();
+  once = main3();
+  once = once & verify();
+  clearall("微信");
+  console.log("是否成功打卡:" + entrance && once);
+  if (entrance && once) {
+    sendintent('autojs.intent.action.dakasucceed', 'succeed✪ ω ✪!!!')
+  } else {
+    sendintent('autojs.intent.action.dakafail', 'fail╯︿╰!!!')
+  }
 }
+
+
+MAIN();
+// \end{MAIN FUNCTION}
+//---------------------------------------------------------------------------------
